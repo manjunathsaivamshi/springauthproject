@@ -4,15 +4,59 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 @Service
 public class JwtService {
     public static final String SECURITY_KEY = "7pLEtQy2LKDsh9gZW48CQAsimm1SXgJE";
     public String extractUserName(String jwtToken) {
-        return null;
+        return extractClaim(jwtToken, Claims::getSubject);
+    }
+
+    public String generateToken(
+            UserDetails userDetails
+    ){
+        return generateToken(new HashMap<>(), userDetails);
+    }
+
+    public boolean isTokenValid(String jwtToken, UserDetails userDetails){
+        final String userName = extractUserName(jwtToken);
+        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(jwtToken);
+    }
+
+    public boolean isTokenExpired(String jwtToken){
+        return extractExpiration(jwtToken).before(new Date());
+    }
+
+    public Date extractExpiration(String jwtToken){
+        return extractClaim(jwtToken, Claims::getExpiration);
+    }
+
+    public String generateToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ){
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000*60))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public <T> T extractClaim(String jwtToken, Function<Claims, T> claimResolver){
+        final Claims claims = extractAllClaims(jwtToken);
+        return claimResolver.apply(claims);
     }
 
     public Claims extractAllClaims(String jwtToken){
