@@ -1,0 +1,15 @@
+meta {
+  name: secured_endpoint
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/demo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJrcnJpc2hzYWk2NDhAZ21haWwuY29tIiwiaWF0IjoxNzU2NjQxNzI4LCJleHAiOjE3NTY2NDE3ODh9.krPebt_PmIaji40BXd3K9Z8lIAnbuQ70IMPey6Q-PkFknKaTdetH57p8_yaJ0MN9
+}
